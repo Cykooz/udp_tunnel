@@ -4,7 +4,8 @@ use std::sync::Arc;
 use thiserror::Error;
 use tokio::sync::mpsc;
 use tokio::task::JoinHandle;
-use tracing::{debug, error};
+#[cfg(feature = "tracing")]
+pub use tracing::{debug, error};
 
 use crate::udp_socket::{SocketError, UdpSocketWithTimeouts};
 use crate::wait_timeout;

@@ -1,17 +1,24 @@
 [package]
 name = "udp_tunnel"
+description = "UDP tunnel with mirroring input traffic to secondary server."
 version = "0.1.0"
 edition = "2024"
 
 
 [dependencies]
-tokio = { version = "1.49.0", features = ["rt", "macros", "net", "time", "sync"] }
-anyhow = "1.0.101"
-thiserror = "2.0.18"
-tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-clap = { version = "4.5", features = ["derive"] }
-clap-verbosity-flag = { version = "3.0", default-features = false, features = ["tracing"] }
+tokio = { version = "1.49", features = ["rt", "macros", "net", "time", "sync", "signal"] }
+anyhow = "1.0"
+thiserror = "2.0"
+tracing = { version = "0.1", optional = true, default-features = false }
+tracing-subscriber = { version = "0.3.22", default-features = false, features = ["fmt", "ansi"], optional = true }
+clap = { version = "4.5", features = ["derive"], optional = true }
+clap-verbosity-flag = { version = "3.0", default-features = false, features = ["tracing"], optional = true }
+
+
+[features]
+default = []
+tracing = ["dep:tracing", "dep:tracing-subscriber", "dep:clap-verbosity-flag"]
+clap = ["dep:clap"]
 
 
 [profile.release]

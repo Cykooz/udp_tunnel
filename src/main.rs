@@ -1,64 +1,61 @@
 use std::collections::HashMap;
 use std::net::SocketAddr;
+use std::process;
 use std::sync::Arc;
 
-use clap::Parser;
+use tokio::signal;
 use tokio::sync::mpsc;
-use tracing::{debug, info};
-use tracing_subscriber::EnvFilter;
-use tracing_subscriber::fmt::Subscriber;
-use tracing_subscriber::util::SubscriberInitExt;
-use udp_connection::{Connection, EMPTY_ADDR};
-use udp_socket::UdpSocketWithTimeouts;
+#[cfg(feature = "tracing")]
+pub use tracing::{debug, error, info};
 
+use crate::settings::Settings;
+use crate::udp_connection::{Connection, EMPTY_ADDR};
+use crate::udp_socket::UdpSocketWithTimeouts;
+
+#[macro_use]
+mod macros;
+
+mod settings;
 mod udp_connection;
 mod udp_socket;
 mod wait_timeout;
 
-#[derive(Parser)]
-#[clap(author = "Kirill K.")]
-#[clap(version, about, long_about = None)]
-struct Cli {
-    /// Address of primary target server
-    #[clap(value_parser)]
-    primary: SocketAddr,
-
-    /// Address of secondary target server
-    #[clap(value_parser)]
-    secondary: SocketAddr,
-
-    /// Address that will be used to listen incoming UDP requests
-    #[clap(value_parser, default_value = "0.0.0.0:53")]
-    listen: SocketAddr,
-
-    /// Connection keepalive timeout in milliseconds
-    #[arg(short, long, value_name = "MILLISECONDS", default_value_t = 500)]
-    keepalive_timeout: u64,
-
-    #[clap(flatten)]
-    verbose: clap_verbosity_flag::Verbosity,
-}
-
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> anyhow::Result<()> {
-    let cli: Cli = Cli::parse();
+    let settings = Settings::new();
 
-    let builder = Subscriber::builder()
-        .with_max_level(cli.verbose)
-        .with_target(false)
-        .without_time()
-        .with_env_filter(EnvFilter::from_default_env());
+    #[cfg(feature = "tracing")]
+    {
+        use tracing_subscriber::fmt::Subscriber;
+        use tracing_subscriber::util::SubscriberInitExt;
+        let builder = Subscriber::builder()
+            .with_max_level(settings.log_level)
+            .with_target(false)
+            .without_time();
 
-    let subscriber = builder.finish();
-    subscriber.try_init()?;
+        let subscriber = builder.finish();
+        subscriber.try_init()?;
+    };
 
-    run_tunnel(
-        cli.listen,
-        cli.primary,
-        cli.secondary,
-        cli.keepalive_timeout,
-    )
-    .await
+    tokio::spawn(run_tunnel(
+        settings.listen,
+        settings.primary,
+        settings.secondary,
+        settings.keepalive_timeout,
+    ));
+
+    // Wait for the Ctrl+C signal
+    match signal::ctrl_c().await {
+        Ok(()) => {
+            info!("Received Ctrl+C, starting shutdown...");
+            Ok(())
+        }
+        Err(err) => {
+            error!("Unable to listen for shutdown signal: {}", err);
+            // Exit with an error code if the signal handler couldn't be installed
+            process::exit(1);
+        }
+    }
 }
 
 async fn run_tunnel(
@@ -69,7 +66,13 @@ async fn run_tunnel(
 ) -> anyhow::Result<()> {
     let socket = UdpSocketWithTimeouts::bind(listen_addr).await?;
     let listen_socket = Arc::new(socket);
-    info!("UDP tunnel is listening on {listen_addr}.");
+    info!(
+        "UDP tunnel is listening on {listen_addr}. \
+        Primary address: {primary_addr}, \
+        secondary address: {secondary_addr}. \
+        Keepalive timeout: {keepalive_timeout} ms."
+    );
+    info!("Press Ctrl+C to stop the tunnel.");
 
     let secondary_socket = Arc::new(UdpSocketWithTimeouts::bind(EMPTY_ADDR).await?);
     secondary_socket.connect(secondary_addr).await?;
