@@ -51,7 +51,7 @@ async fn main() -> anyhow::Result<()> {
             Ok(())
         }
         Err(err) => {
-            error!("Unable to listen for shutdown signal: {}", err);
+            error!("Unable to listen for shutdown signal: {err}");
             // Exit with an error code if the signal handler couldn't be installed
             process::exit(1);
         }
