@@ -27,4 +27,5 @@ jobs:
         uses: houseabsolute/actions-rust-release@v0
         with:
           executable-name: udp_tunnel
+          changes-file: ""
           target: ${{ matrix.platform.target }}
