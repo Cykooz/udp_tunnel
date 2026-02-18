@@ -31,6 +31,7 @@ async fn main() -> anyhow::Result<()> {
         let builder = Subscriber::builder()
             .with_max_level(settings.log_level)
             .with_target(false)
+            .with_ansi(settings.log_ansi_color)
             .without_time();
 
         let subscriber = builder.finish();

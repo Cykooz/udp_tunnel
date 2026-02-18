@@ -16,6 +16,8 @@ pub struct Settings {
     pub keepalive_timeout: u64,
     #[cfg(feature = "tracing")]
     pub log_level: tracing::metadata::LevelFilter,
+    #[cfg(feature = "tracing")]
+    pub log_ansi_color: bool,
 }
 
 #[cfg(feature = "clap")]
@@ -42,6 +44,10 @@ struct Cli {
     #[cfg(feature = "tracing")]
     #[clap(flatten)]
     verbose: clap_verbosity_flag::Verbosity,
+
+    #[cfg(feature = "tracing")]
+    #[arg(long, default_value_t = true)]
+    log_ansi_color: bool,
 }
 
 impl Settings {
@@ -62,6 +68,8 @@ impl Settings {
             keepalive_timeout: cli.keepalive_timeout,
             #[cfg(feature = "tracing")]
             log_level: cli.verbose.into(),
+            #[cfg(feature = "tracing")]
+            log_ansi_color: cli.log_ansi_color,
         }
     }
 
@@ -74,6 +82,8 @@ impl Settings {
             keepalive_timeout: get_from_env("KEEPALIVE_TIMEOUT", Some(500)),
             #[cfg(feature = "tracing")]
             log_level: get_from_env("LOG_LEVEL", Some(tracing::metadata::LevelFilter::INFO)),
+            #[cfg(feature = "tracing")]
+            log_ansi_color: get_from_env("LOG_ANSI_COLOR", Some(true)),
         }
     }
 }

@@ -16,7 +16,7 @@ clap-verbosity-flag = { version = "3.0", default-features = false, features = ["
 
 
 [features]
-default = []
+default = ["tracing"]
 tracing = ["dep:tracing", "dep:tracing-subscriber", "dep:clap-verbosity-flag"]
 clap = ["dep:clap"]
 
