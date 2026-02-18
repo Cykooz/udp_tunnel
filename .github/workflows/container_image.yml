@@ -19,6 +19,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+
       - name: Build binary
         uses: houseabsolute/actions-rust-cross@v1
         with:
@@ -26,12 +27,6 @@ jobs:
           target: ${{ matrix.platform.target }}
           args: "--locked --release --features=tracing"
           strip: true
-      - name: Publish artifacts and release
-        uses: houseabsolute/actions-rust-release@v0
-        with:
-          executable-name: udp_tunnel
-          changes-file: ""
-          target: ${{ matrix.platform.target }}
 
       - name: Upload binary file
         uses: actions/upload-artifact@v6
