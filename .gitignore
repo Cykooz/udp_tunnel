@@ -2,3 +2,6 @@
 .*
 !/.gitignore
 !/.github
+!/.dockerignore
+/docker/arm64
+/docker/amd64
