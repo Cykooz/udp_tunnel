@@ -1,12 +1,9 @@
-use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+use std::net::SocketAddr;
 
 #[cfg(feature = "clap")]
 use clap::Parser;
 
-#[inline(always)]
-const fn socket_addr_v4(a: u8, b: u8, c: u8, d: u8, port: u16) -> SocketAddr {
-    SocketAddr::new(IpAddr::V4(Ipv4Addr::new(a, b, c, d)), port)
-}
+use crate::socket_addr_v4;
 
 const DEFAULT_LISTEN_ADDR: SocketAddr = socket_addr_v4(0, 0, 0, 0, 53);
 const DEFAULT_PRIMARY_ADDR: SocketAddr = socket_addr_v4(8, 8, 8, 8, 53);
@@ -57,12 +54,18 @@ struct Cli {
     log_ansi_color: bool,
 }
 
-impl Settings {
-    pub fn new() -> Self {
+impl Default for Settings {
+    fn default() -> Self {
         #[cfg(feature = "clap")]
         return Self::from_cli();
         #[cfg(not(feature = "clap"))]
         Self::from_env()
+    }
+}
+
+impl Settings {
+    pub fn new() -> Self {
+        Self::default()
     }
 
     #[cfg(feature = "clap")]

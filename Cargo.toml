@@ -1,6 +1,10 @@
 [package]
 name = "udp_tunnel"
 description = "UDP tunnel with mirroring input traffic to secondary server."
+authors = ["Kirill Kuzminykh <cykooz@gmail.com>"]
+license = "MIT OR Apache-2.0"
+readme = "README.md"
+repository = "https://github.com/Cykooz/udp_tunnel"
 version = "0.1.0"
 edition = "2024"
 
@@ -19,6 +23,10 @@ clap-verbosity-flag = { version = "3.0", default-features = false, features = ["
 default = ["tracing"]
 tracing = ["dep:tracing", "dep:tracing-subscriber", "dep:clap-verbosity-flag"]
 clap = ["dep:clap"]
+
+
+[dev-dependencies]
+tokio = { version = "1.49", features = ["test-util"] }
 
 
 [profile.release]
