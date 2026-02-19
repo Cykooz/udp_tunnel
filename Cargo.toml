@@ -15,13 +15,12 @@ anyhow = "1.0"
 thiserror = "2.0"
 tracing = { version = "0.1", optional = true, default-features = false }
 tracing-subscriber = { version = "0.3.22", default-features = false, features = ["fmt", "ansi"], optional = true }
-clap = { version = "4.5", features = ["derive"], optional = true }
-clap-verbosity-flag = { version = "3.0", default-features = false, features = ["tracing"], optional = true }
+clap = { version = "4.5", features = ["derive", "env"], optional = true }
 
 
 [features]
 default = ["tracing"]
-tracing = ["dep:tracing", "dep:tracing-subscriber", "dep:clap-verbosity-flag"]
+tracing = ["dep:tracing", "dep:tracing-subscriber"]
 clap = ["dep:clap"]
 
 

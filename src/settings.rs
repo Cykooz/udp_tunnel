@@ -21,7 +21,7 @@ pub struct Settings {
     #[cfg(feature = "tracing")]
     pub log_level: tracing::metadata::LevelFilter,
     #[cfg(feature = "tracing")]
-    pub log_ansi_color: bool,
+    pub without_ansi_color: bool,
 }
 
 #[cfg(feature = "clap")]
@@ -30,28 +30,34 @@ pub struct Settings {
 #[clap(version, about, long_about = None)]
 struct Cli {
     /// Address that will be used to listen incoming UDP requests
-    #[clap(value_parser, default_value_t = DEFAULT_LISTEN_ADDR)]
+    #[clap(short, long, env = "LISTEN_ADDR", default_value_t = DEFAULT_LISTEN_ADDR)]
     listen: SocketAddr,
 
     /// Address of primary target server
-    #[clap(value_parser, default_value_t = DEFAULT_PRIMARY_ADDR)]
+    #[clap(short, long, env = "PRIMARY_ADDR", default_value_t = DEFAULT_PRIMARY_ADDR)]
     primary: SocketAddr,
 
     /// Address of secondary target server
-    #[clap(value_parser, default_value_t = DEFAULT_SECONDARY_ADDR)]
+    #[clap(short, long, env = "SECONDARY_ADDR", default_value_t = DEFAULT_SECONDARY_ADDR)]
     secondary: SocketAddr,
 
     /// Connection keepalive timeout in milliseconds
-    #[arg(short, long, value_name = "MILLISECONDS", default_value_t = 500)]
+    #[arg(
+        short,
+        long,
+        value_name = "MILLISECONDS",
+        env = "KEEPALIVE_TIMEOUT",
+        default_value_t = 500
+    )]
     keepalive_timeout: u64,
 
     #[cfg(feature = "tracing")]
-    #[clap(flatten)]
-    verbose: clap_verbosity_flag::Verbosity,
+    #[clap(long, env = "LOG_LEVEL", default_value = "info")]
+    log_level: tracing::metadata::LevelFilter,
 
     #[cfg(feature = "tracing")]
-    #[arg(long, default_value_t = true)]
-    log_ansi_color: bool,
+    #[arg(long, env = "WITHOUT_ANSI_COLOR", default_value_t = false)]
+    without_ansi_color: bool,
 }
 
 impl Default for Settings {
@@ -77,9 +83,9 @@ impl Settings {
             secondary: cli.secondary,
             keepalive_timeout: cli.keepalive_timeout,
             #[cfg(feature = "tracing")]
-            log_level: cli.verbose.into(),
+            log_level: cli.log_level,
             #[cfg(feature = "tracing")]
-            log_ansi_color: cli.log_ansi_color,
+            without_ansi_color: cli.without_ansi_color,
         }
     }
 
@@ -93,11 +99,12 @@ impl Settings {
             #[cfg(feature = "tracing")]
             log_level: get_from_env("LOG_LEVEL", Some(tracing::metadata::LevelFilter::INFO)),
             #[cfg(feature = "tracing")]
-            log_ansi_color: get_from_env("LOG_ANSI_COLOR", Some(true)),
+            without_ansi_color: std::env::var("WITHOUT_ANSI_COLOR").is_ok(),
         }
     }
 }
 
+#[cfg(not(feature = "clap"))]
 fn get_from_env<T: std::str::FromStr>(name: &str, default: Option<T>) -> T {
     match std::env::var(name).ok() {
         Some(v) => v

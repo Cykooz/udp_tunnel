@@ -18,30 +18,35 @@ async fn main() -> anyhow::Result<()> {
         let builder = Subscriber::builder()
             .with_max_level(settings.log_level)
             .with_target(false)
-            .with_ansi(settings.log_ansi_color)
+            .with_ansi(!settings.without_ansi_color)
             .without_time();
 
         let subscriber = builder.finish();
         subscriber.try_init()?;
     };
 
-    tokio::spawn(run_tunnel(
+    let run_handle = tokio::spawn(run_tunnel(
         settings.listen,
         settings.primary,
         settings.secondary,
         settings.keepalive_timeout,
     ));
 
-    // Wait for the Ctrl+C signal
-    match signal::ctrl_c().await {
-        Ok(()) => {
-            info!("Received Ctrl+C, starting shutdown...");
-            Ok(())
-        }
-        Err(err) => {
-            error!("Unable to listen for shutdown signal: {err}");
-            // Exit with an error code if the signal handler couldn't be installed
-            process::exit(1);
-        }
+    tokio::select! {
+        r = run_handle => {r?},
+        v = signal::ctrl_c() => {
+            // Wait for the Ctrl+C signal
+            match v {
+                Ok(()) => {
+                    info!("Received Ctrl+C, starting shutdown...");
+                    Ok(())
+                }
+                Err(err) => {
+                    error!("Unable to listen for shutdown signal: {err}");
+                    // Exit with an error code if the signal handler couldn't be installed
+                    process::exit(1);
+                }
+            }
+        },
     }
 }
