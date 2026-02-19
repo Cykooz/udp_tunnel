@@ -36,6 +36,5 @@ Default: `500`.
 Maximal level of log messages. Available values: `debug`, `info`, `error`.  
 Default: `info`.
 
-**LOG_ANSI_COLOR**  
-Enable or disable ANSI color in log messages. Available values: `false`, `true`.  
-Default: `true`.
+**WITHOUT_ANSI_COLOR**  
+Disable ANSI color in log messages.
