@@ -9,28 +9,33 @@ input traffic to secondary address.
 
 ## Environment variables
 
-`LISTEN_ADDR`
-: Address to listen for incoming UDP packets (default: `0.0.0.0:53`).
+**LISTEN_ADDR**  
+Address to listen for incoming UDP packets.  
+Default: `0.0.0.0:53`.
 
-`PRIMARY_ADDR`
-: Primary address (<host>:<port>) for sending UDP packets that have been sent by
-the client to `LISTEN_ADDR`.
-All packets received from this address will be sent back to the client.
+**PRIMARY_ADDR**  
+Primary address (<host>:<port>) for sending UDP packets that have been sent by
+the client to `LISTEN_ADDR`.  
+All packets received from this address will be sent back to the client.  
+Default: `8.8.8.8:53`.
 
-`SECONDARY_ADDR`
-: Secondary address (<host>:<port>) for sending UDP packets that have been sent by
-the client to `LISTEN_ADDR`.
-Packets received from this address are ignored.
+**SECONDARY_ADDR**  
+Secondary address (<host>:<port>) for sending UDP packets that have been sent by
+the client to `LISTEN_ADDR`.  
+Packets received from this address are ignored.  
+Default: `192.168.0.1:53`.
 
-`KEEPALIVE_TIMEOUT`
-: Keepalive timeout in milliseconds (default: `500`).
+**KEEPALIVE_TIMEOUT**  
+Keepalive timeout in milliseconds.  
 This timeout is used to keep mapping between the client's port that is used
 to send packets to `LISTEN_ADDR` and the port that is used to send these
-packets to `PRIMARY_ADDR`.
+packets to `PRIMARY_ADDR`.  
+Default: `500`.
 
-`LOG_LEVEL`
-: Maximal level of log messages. Available values: `debug`, `info`, `error`
-(default: `info`).
+**LOG_LEVEL**  
+Maximal level of log messages. Available values: `debug`, `info`, `error`.  
+Default: `info`.
 
-`LOG_ANSI_COLOR`
-: Enable or disable ANSI color in log messages (default: `true`).
+**LOG_ANSI_COLOR**  
+Enable or disable ANSI color in log messages. Available values: `false`, `true`.  
+Default: `true`.

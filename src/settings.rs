@@ -3,7 +3,14 @@ use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 #[cfg(feature = "clap")]
 use clap::Parser;
 
-const DEFAULT_LISTEN_ADDR: SocketAddr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)), 53);
+#[inline(always)]
+const fn socket_addr_v4(a: u8, b: u8, c: u8, d: u8, port: u16) -> SocketAddr {
+    SocketAddr::new(IpAddr::V4(Ipv4Addr::new(a, b, c, d)), port)
+}
+
+const DEFAULT_LISTEN_ADDR: SocketAddr = socket_addr_v4(0, 0, 0, 0, 53);
+const DEFAULT_PRIMARY_ADDR: SocketAddr = socket_addr_v4(8, 8, 8, 8, 53);
+const DEFAULT_SECONDARY_ADDR: SocketAddr = socket_addr_v4(192, 168, 0, 1, 53);
 
 pub struct Settings {
     /// Address that will be used to listen incoming UDP requests
@@ -25,17 +32,17 @@ pub struct Settings {
 #[clap(author = "Kirill K.")]
 #[clap(version, about, long_about = None)]
 struct Cli {
-    /// Address of primary target server
-    #[clap(value_parser)]
-    primary: SocketAddr,
-
-    /// Address of secondary target server
-    #[clap(value_parser)]
-    secondary: SocketAddr,
-
     /// Address that will be used to listen incoming UDP requests
     #[clap(value_parser, default_value_t = DEFAULT_LISTEN_ADDR)]
     listen: SocketAddr,
+
+    /// Address of primary target server
+    #[clap(value_parser, default_value_t = DEFAULT_PRIMARY_ADDR)]
+    primary: SocketAddr,
+
+    /// Address of secondary target server
+    #[clap(value_parser, default_value_t = DEFAULT_SECONDARY_ADDR)]
+    secondary: SocketAddr,
 
     /// Connection keepalive timeout in milliseconds
     #[arg(short, long, value_name = "MILLISECONDS", default_value_t = 500)]
@@ -77,8 +84,8 @@ impl Settings {
     fn from_env() -> Self {
         Self {
             listen: get_from_env("LISTEN_ADDR", Some(DEFAULT_LISTEN_ADDR)),
-            primary: get_from_env("PRIMARY_ADDR", None),
-            secondary: get_from_env("SECONDARY_ADDR", None),
+            primary: get_from_env("PRIMARY_ADDR", Some(DEFAULT_PRIMARY_ADDR)),
+            secondary: get_from_env("SECONDARY_ADDR", Some(DEFAULT_SECONDARY_ADDR)),
             keepalive_timeout: get_from_env("KEEPALIVE_TIMEOUT", Some(500)),
             #[cfg(feature = "tracing")]
             log_level: get_from_env("LOG_LEVEL", Some(tracing::metadata::LevelFilter::INFO)),
