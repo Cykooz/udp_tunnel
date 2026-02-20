@@ -7,6 +7,17 @@ input traffic to secondary address.
 
 [CHANGELOG](https://github.com/Cykooz/udp_tunnel/blob/main/CHANGELOG.md)
 
+## How it works
+
+```mermaid
+sequenceDiagram
+    Client->>UdpTunnel: Client's Packet
+    UdpTunnel->>Primary: Client's Packet
+    UdpTunnel->>Secondary: Client's Packet
+    Primary-->>UdpTunnel: Primary's Response
+    UdpTunnel-->>Client: Primary's Response
+```
+
 ## Environment variables
 
 **LISTEN_ADDR**  
